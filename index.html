@@ -84,10 +84,10 @@
                 resultDiv.textContent = `✓ Stimmt: 45 Stück`;
                 resultDiv.style.color = 'green';
             } else if (difference > 0) {
-                resultDiv.textContent = `+${deviation} Stück`;
+                resultDiv.textContent = `+${deviation} Stück zuviel`;
                 resultDiv.style.color = 'orange';
             } else {
-                resultDiv.textContent = `${deviation} Stück`;
+                resultDiv.textContent = `${deviation} Stück zuwenig`;
                 resultDiv.style.color = 'red';
             }
         }
