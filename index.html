@@ -127,10 +127,10 @@
                 resultDiv.textContent = `✓ Stimmt: ${itemCount} Stück`;
                 resultDiv.style.color = 'green';
             } else if (difference > 0) {
-                resultDiv.textContent = `+${deviation} Stück zuviel (Soll: ${itemCount} Stück)`;
+                resultDiv.innerHTML = `+${deviation} Stück zuviel<br>(Soll: ${itemCount} Stück)`;
                 resultDiv.style.color = 'orange';
             } else {
-                resultDiv.textContent = `${deviation} Stück zuwenig (Soll: ${itemCount} Stück)`;
+                resultDiv.innerHTML = `${deviation} Stück zuwenig<br>(Soll: ${itemCount} Stück)`;
                 resultDiv.style.color = 'red';
             }
 
