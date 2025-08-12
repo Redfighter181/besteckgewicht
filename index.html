@@ -24,18 +24,30 @@
         }
         .result {
             margin-top: 10px;
-            font-size: 1.2rem;
+            font-size: 1.5rem; /* Größer für bessere Lesbarkeit */
             font-weight: bold;
+            color: #333; /* Standardfarbe für das Ergebnis */
             visibility: hidden;
             opacity: 0;
             transition: opacity 0.3s ease, visibility 0.3s ease;
             min-height: 50px;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            border-radius: 4px;
-            background: #f8f9fa;
+            border-radius: 8px; /* Etwas rundere Ecken */
+            background: #e9f5ff; /* Heller, bläulicher Hintergrund */
+            border: 1px solid #a8d9ff; /* Blauer Rahmen */
+            box-shadow: 0 4px 10px rgba(0, 123, 255, 0.1); /* Leichter blauer Schatten */
         }
+        
+        .result small {
+            font-size: 0.9rem; /* Kleinere Schrift für die "Soll"-Anzeige */
+            font-weight: normal; /* Normale Schriftstärke */
+            color: #666; /* Etwas dunklerer Grauton für "Soll" */
+            margin-top: 5px;
+        }
+
         .instructions {
             font-size: 0.95rem;
             color: #666;
@@ -61,6 +73,48 @@
             margin-bottom: 10px !important;
         }
         
+        .weight-input-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        
+        .weight-input {
+            font-family: 'Courier New', monospace;
+            font-size: 1.2rem;
+            text-align: center;
+            letter-spacing: 0.15em;
+            background: 
+                linear-gradient(90deg, #fff 0%, #fff 55%, #f8f9fa 55%, #f8f9fa 100%),
+                repeating-linear-gradient(
+                    90deg,
+                    transparent 0px,
+                    transparent 18px,
+                    #e9ecef 18px,
+                    #e9ecef 19px
+                );
+            background-size: 100% 100%, 100% 100%;
+            border: 2px solid #007bff;
+            border-radius: 6px;
+            padding: 8px 12px;
+            width: 100%;
+        }
+        
+        .weight-input:focus {
+            outline: none;
+            border-color: #0056b3;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+        
+        .unit {
+            position: absolute;
+            right: 12px;
+            color: #6c757d;
+            font-weight: bold;
+            font-size: 0.9rem;
+            pointer-events: none;
+        }
+        
         /* Kompakte Mobile Ansicht */
         @media (max-width: 480px) {
             body {
@@ -70,23 +124,23 @@
                 padding: 8px;
             }
             h1 {
-                font-size: 1.3rem;
+                font-size: 1.5rem;
                 margin-bottom: 8px;
             }
             .instructions {
-                font-size: 0.8rem;
+                font-size: 0.9rem;
                 margin-bottom: 8px;
             }
             .form-label {
-                font-size: 0.85rem;
+                font-size: 0.95rem;
             }
             .form-control, .form-select {
-                font-size: 0.95rem;
+                font-size: 1rem;
                 padding: 7px 8px;
             }
             .result {
-                font-size: 1rem;
-                min-height: 40px;
+                font-size: 1.1rem;
+                min-height: 45px;
                 margin-top: 8px;
             }
             .mb-3 {
@@ -103,18 +157,18 @@
                 padding: 6px;
             }
             h1 {
-                font-size: 1.2rem;
+                font-size: 1.4rem;
                 margin-bottom: 6px;
             }
             .instructions {
-                font-size: 0.75rem;
+                font-size: 0.85rem;
                 margin-bottom: 6px;
             }
             .mb-3 {
                 margin-bottom: 6px !important;
             }
             .result {
-                min-height: 35px;
+                min-height: 40px;
                 margin-top: 6px;
             }
         }
@@ -126,10 +180,6 @@
         <p class="instructions">Wiegen Sie den Behälter mit Besteck, wählen Sie den Bestecktyp und geben Sie das Gewicht ein, um die Abweichung zu prüfen.</p>
         <form>
             <div class="mb-3">
-                <label for="measuredWeight" class="form-label">Gewicht des Behälters (kg):</label>
-                <input type="number" id="measuredWeight" class="form-control" step="0.001" placeholder="z.B. 3.532" required>
-            </div>
-            <div class="mb-3">
                 <label for="besteckType" class="form-label">Bestecktyp:</label>
                 <select id="besteckType" class="form-select">
                     <option value="messer">Messer</option>
@@ -137,6 +187,13 @@
                     <option value="loeffel">Löffel</option>
                     <option value="kaffeeloeffel">Kaffeelöffel</option>
                 </select>
+            </div>
+            <div class="mb-3">
+                <label for="measuredWeight" class="form-label">Gewicht des Behälters (kg):</label>
+                <div class="weight-input-container">
+                    <input type="number" id="measuredWeight" class="form-control weight-input" step="0.001" placeholder="0.123" required>
+                    <span class="unit">kg</span>
+                </div>
             </div>
         </form>
         <div class="result text-center mt-3" id="result"></div>
@@ -177,7 +234,11 @@
         });
 
         besteckTypeSelect.addEventListener('change', () => {
-            debounceCheckWeight();
+            // Ergebnis sofort verstecken wenn Bestecktyp gewechselt wird
+            resultDiv.style.visibility = 'hidden';
+            resultDiv.style.opacity = '0';
+            // Timeout löschen damit keine alte Berechnung läuft
+            clearTimeout(debounceTimeout);
         });
 
         // Verzögerte Berechnung
@@ -188,13 +249,22 @@
             resultDiv.style.opacity = '0';
             debounceTimeout = setTimeout(() => {
                 checkWeight();
-            }, 500);
+            }, 200);
         }
 
         function checkWeight() {
             // Eingabewerte abrufen
-            const measuredWeight = parseFloat(measuredWeightInput.value);
+            const measuredWeight = measuredWeightInput.value;
             const besteckType = besteckTypeSelect.value;
+
+            // Prüfen ob alle 3 Dezimalstellen eingegeben wurden
+            if (!measuredWeight || !measuredWeight.includes('.') || measuredWeight.split('.')[1]?.length < 3) {
+                resultDiv.style.visibility = 'hidden';
+                resultDiv.style.opacity = '0';
+                return;
+            }
+
+            const weightValue = parseFloat(measuredWeight);
 
             // Sollgewicht berechnen
             const singleWeight = weightsPerPiece[besteckType];
@@ -203,22 +273,18 @@
             const expectedWeight = containerWeight + (itemCount * singleWeight);
 
             // Abweichung berechnen
-            const difference = measuredWeight - expectedWeight;
+            const difference = weightValue - expectedWeight;
             const deviation = Math.round(difference / singleWeight);
 
             // Ergebnis anzeigen
-            if (isNaN(measuredWeight)) {
+            if (isNaN(weightValue)) {
                 resultDiv.textContent = 'Bitte ein gültiges Gewicht eingeben!';
-                resultDiv.style.color = 'red';
             } else if (Math.abs(difference) < singleWeight / 2) {
                 resultDiv.textContent = `✓ Stimmt: ${itemCount} Stück`;
-                resultDiv.style.color = 'green';
             } else if (difference > 0) {
-                resultDiv.innerHTML = `+${deviation} Stück zuviel<br>(Soll: ${itemCount} Stück)`;
-                resultDiv.style.color = 'orange';
+                resultDiv.innerHTML = `+${deviation} Stück zuviel<br><small>(Soll: ${itemCount} Stück)</small>`;
             } else {
-                resultDiv.innerHTML = `${deviation} Stück zuwenig<br>(Soll: ${itemCount} Stück)`;
-                resultDiv.style.color = 'red';
+                resultDiv.innerHTML = `${deviation} Stück zuwenig<br><small>(Soll: ${itemCount} Stück)</small>`;
             }
 
             resultDiv.style.visibility = 'visible';
